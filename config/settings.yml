@@ -1,0 +1,66 @@
+carrierwave:
+  fog_cache_control: 30.seconds
+  fog_expiration: 30.seconds
+  fog_public: false
+  max_file_size_in_byte: 3221225472
+
+access_token_header: "X-Skyrec-Access-Token"
+
+http_code:
+  code_200: 200
+  code_400: 400
+  code_404: 404
+  code_401: 401
+  code_403: 403
+
+error_formatter:
+  error_code_key: "error_code"
+  error_codes:
+    data_operation: 600
+    unauthorized: 601
+    token_expired: 602
+    record_not_found: 603
+    validation_errors: 604
+    pwd_not_correct: 605
+    unauthenticated: 606
+    image_recognition_error: 607
+  message_key: "message"
+
+validations:
+  strings:
+    max_length: 255
+  email_regex: \A([\w\.%\+\-]+)@([\w.\-]+\.+[\w]{2,})\z
+  post:
+    slug:
+      max_length: 70
+      min_length: 5
+  user:
+    user_name:
+      max_length: 20
+  password_regex: \A[ -~]*\z
+  password:
+    min_length: 8
+    max_length: 64
+
+user_tokens:
+  token:
+    secure_length: 64
+  refresh_token:
+    secure_length: 64
+  expired_period: 30.days
+
+users:
+  reset_pwd_token:
+    secure_length: 16
+    expired_period: 30.minutes
+
+pages:
+  per_page: 20
+
+unsecured_protocol: "http://"
+
+server_statictis:
+  offline_interval: 150.seconds
+
+number_format:
+  precision: 2

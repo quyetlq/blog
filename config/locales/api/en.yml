@@ -1,0 +1,87 @@
+en:
+  dictionary:
+    blank: &blank "can't be blank"
+    not_a_number: &not_a_number "is not a number"
+    invalid: &invalid "is invalid"
+    taken: &taken "has already been taken"
+
+  api_error:
+    unauthorized: "Unauthorized!"
+    validation_errors: "Validations Error!"
+    token_expired: "Token expired!"
+    pwd_not_correct: "Password not correct!"
+    record_not_found: "Record not found!"
+    unauthenticated: "Unauthenticated!"
+    image_recognition_error: "Recognize engine error!"
+
+  time:
+    formats:
+      full_date: "%Y/%m/%d"
+      full_datetime: "%Y/%m/%d %H:%M:%S"
+      full_time: "%H:%M:%S"
+
+  duplicate:
+    duplicate_at: "%{time} - "
+
+  user_mailer:
+    subjects:
+      reset_pwd: "%{app_name} - Password Reset"
+      path: "#/reset-password/%{token}"
+      admin_path: "#/admin/reset-password/%{token}"
+      deliver_user_info: "%{app_name} - Deliver User Info"
+      login_path: "#/login"
+    reset_pwd:
+      content_email_reset_password: You are receiving this email because we received a password reset request for your %{role} account.
+      hello: Hello!
+      click_here: Click here reset password
+      admin: admin
+      user: user
+
+  validations:
+    message_errors:
+      unable_modify_task: "Unable to modify task due to Processing/ Queued/ Done status"
+      task_name_taken: *taken
+      project_name_taken: *taken
+      limit_exceed: "Unable to upload due to insufficient disk storage allowance. Please try to upload with smaller file size or contact your administrator to extend data limit."
+      password_same: "can not be the same"
+      demo_recognition_error: "Cannot connect to recognization server. Please try again later."
+
+  activerecord:
+    attributes:
+      user:
+        user_name: "User name"
+        email: "Email"
+        password: "Password"
+      image_set:
+        image_set_name: "Image set name"
+        file_info: "File info"
+        size: "Size"
+      project:
+        project_name: "Project name"
+      task:
+        task_name: "Task name"
+      client:
+        client_name: "Client name"
+        contact_person: "Contact person"
+        email: "Email"
+        mobile: "Mobile number"
+    errors:
+      models:
+        project:
+          blank: *blank
+          not_a_number: *not_a_number
+        task:
+          blank: *blank
+        user:
+          blank: *blank
+          invalid: *invalid
+          taken: *taken
+        image_set:
+          blank: *blank
+          less_than_or_equal_to: "must be less than or equal to %{count} bytes"
+        client:
+          blank: *blank
+          taken: *taken
+          invalid: *invalid
+        user_token:
+          blank: *blank
