@@ -16,21 +16,65 @@ class V1::AuthAPI < Grape::API
       end
 
       if user && user.authenticate(params[:password])
-        key = ApiKey.create(user_id: user.id)
+        key = ApiKey.create(user_id: user.id, expires_at: DateTime.now+30*60)
         {token: key.access_token}
       else
         error!('Unauthorized.', 401)
       end
     end
 
-    desc "Returns pong if logged in correctly"
+    desc "Create new member"
     params do
-      requires :token, type: String, desc: "Access token."
+      requires :user_name, type: String
+      requires :email, type: String
+      requires :password, type: String
     end
+    post :new_mem do
+      authenticate_admin!
+      # check mem exists
+      if !User.exists?(:email => params[:email])
+        new_user = User.create! declared(params).to_h
+      else
+        new_user =  "User exists"
+      end
+      new_user
+    end
+
+
+    desc "Destroy member"
+    params do
+      requires :email, type: String
+    end
+    post :destroy_mem do
+      authenticate_admin!
+      # check mem exists
+      if User.exists?(:email => params[:email])
+        User.find_by(:email => params[:email]).destroy
+        res = "Delete success!"
+      else
+        res = "User not exists"
+      end
+      res
+    end
+
+    desc "Returns pong if logged in correctly"
+    # params do
+    #   requires :token, type: String, desc: "Access token."
+    # end
     get :ping do
       @current = authenticate!
       puts @current
       { message: "pong" }
+    end
+
+    desc "Logout and remove all access_token of user"
+    params do
+      requires :token, type: String, desc: "Access token."
+    end
+    post :logout do
+      authenticate!
+      current_user.api_keys.find_by!(access_token: params[:token]).expire!
+      {"message": "logout sucssess!"}
     end
   end
 end

@@ -4,8 +4,14 @@ class ApiKey < ApplicationRecord
   before_create :set_expiration
   belongs_to :user
 
+  validates :expires_at, presence: true
+
   def expired?
     DateTime.now >= self.expires_at
+  end
+
+  def expire!
+    update_attributes! expires_at: Time.zone.now
   end
 
   private

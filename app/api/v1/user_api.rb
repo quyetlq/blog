@@ -15,7 +15,7 @@ class V1::UserAPI < Grape::API
       end
 
       if user && user.authenticate(params[:password])
-        key = ApiKey.create(user_id: user.id)
+        key = ApiKey.create(user_id: user.id, expires_at: DateTime.now+30)
         {token: key.access_token}
       else
         error!('Unauthorized.', 401)
@@ -23,9 +23,9 @@ class V1::UserAPI < Grape::API
     end
 
     desc "Returns pong if logged in correctly"
-    params do
-      requires :token, type: String, desc: "Access token."
-    end
+    # params do
+      # requires :token, type: String, desc: "Access token."
+    # end
     get :ping do
       authenticate!
       { message: "pong" }
@@ -34,7 +34,8 @@ class V1::UserAPI < Grape::API
     desc "Logout and remove all access_token of user"
     post :logout do
     	authenticate!
-      current_user.user_tokens.find_by!(token: access_token_header).expire!
+      current_user.api_keys.find_by!(access_token: access_token_header).expire!
+      {"message": "logout sucssess!"}
     end
   end
 end
