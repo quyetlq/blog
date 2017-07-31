@@ -85,6 +85,8 @@ GEM
     erubi (1.6.1)
     execjs (2.7.0)
     ffi (1.9.18)
+    friendly_id (5.2.1)
+      activerecord (>= 4.0.0)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
     grape (1.0.0)
@@ -223,6 +225,7 @@ DEPENDENCIES
   capybara (~> 2.13)
   coffee-rails (~> 4.2)
   config
+  friendly_id
   grape
   grape-active_model_serializers
   jbuilder (~> 2.5)

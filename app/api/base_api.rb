@@ -37,6 +37,7 @@ module BaseAPI
       end
 
       def authenticate_admin!
+        authenticate!
         error!('Unauthorized. You are not admin.', 401) unless current_user.is_admin?
       end
 
