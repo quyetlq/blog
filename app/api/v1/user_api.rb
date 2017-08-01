@@ -74,5 +74,54 @@ class V1::UserAPI < Grape::API
       current_user.api_keys.find_by!(access_token: params[:token]).expire!
       {"message": "logout sucssess!"}
     end
+
+    desc "Like post"
+    params do
+      requires :post_id, type: Integer
+    end
+    post :like do
+      authenticate!
+      like = Like.create! declared(params).merge({user_id: current_user.id})
+      {"msg": "You just like post"}
+    end
+
+    desc "Dislike post"
+    params do
+      requires :post_id, type: Integer
+    end
+    post :dislike do
+      authenticate!
+      like = Like.find_by(post_id: params[:post_id],
+                          user_id: current_user.id)
+      if like
+        like.destroy
+      else
+        {"msg": "You not like post"}
+      end
+    end
+
+    desc "All members"
+    get :all_mem do
+      authenticate!
+      users = User.find_by(role: "member")
+      users
+    end
+
+    desc "All users"
+    get :all_users do
+      authenticate_admin!
+      users = User.all
+      {"users": users}
+    end
+
+    desc "Follow user"
+    params do
+      requires :follower_id, type: Integer
+    end
+    post :follow do
+      authenticate!
+      follow = Relationship.create! declared(params).merge({followed_id: current_user.id})
+      follow
+    end
   end
 end

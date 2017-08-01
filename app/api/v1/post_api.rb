@@ -13,5 +13,14 @@ class V1::PostApi < Grape::API
 																											slug: slug}).to_h
 		end
 
+		desc "Detail post"
+		params do
+			requires :post_id, type: String
+		end
+		get ":post_id" do
+			authenticate!
+			post = Post.find_by_id(params[:post_id])
+			post
+		end
 	end
 end

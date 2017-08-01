@@ -4,6 +4,7 @@ class V1 < Grape::API
   mount UserAPI
   # mount AuthAPI
   mount PostApi
+  mount CommentAPI
 
   desc "Return the current API version - V1."
   get do
