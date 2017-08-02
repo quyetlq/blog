@@ -5,14 +5,14 @@ class V1::AuthAPI < Grape::API
 
     desc "Creates and returns access_token if valid login"
     params do
-      requires :login, type: String, desc: "Username or email address"
+      requires :email, type: String, desc: "Username or email address"
       requires :password, type: String, desc: "Password"
     end
     post :login do
-      if params[:login].include?("@")
-        user = User.find_by_email(params[:login].downcase)
+      if params[:email].include?("@")
+        user = User.find_by_email(params[:email].downcase)
       else
-        user = User.find_by_login(params[:login].downcase)
+        user = User.find_by_login(params[:email].downcase)
       end
 
       if user && user.authenticate(params[:password])
