@@ -21,6 +21,11 @@ class V1::UserAPI < Grape::API
       end
     end
 
+    desc "Show me"
+    get do
+      current_user
+    end
+
     desc "Create new member"
     params do
       requires :user_name, type: String
@@ -116,12 +121,91 @@ class V1::UserAPI < Grape::API
 
     desc "Follow user"
     params do
-      requires :follower_id, type: Integer
+      requires :followed_id, type: Integer
     end
     post :follow do
       authenticate!
-      follow = Relationship.create! declared(params).merge({followed_id: current_user.id})
+      follow = Relationship.create! declared(params).merge({follower_id: current_user.id})
+      if !follow.blank?
+        user = User.find_by(id: params[:followed_id])
+        MailerMailer.notification_user_follow(user).deliver_now
+        puts "Just send email notification from #{user.email}"
+      end
       follow
+    end
+
+    desc "Unfollow user"
+    params do
+      requires :followed_id, type: Integer
+    end
+    post :unfollow do
+      authenticate!
+      follow = Relationship.find_by(followed_id: params[:followed_id], follower_id: current_user.id)
+      if follow
+        follow.destroy
+        {"msg": "Unfollow sucssess!"}
+      else
+        {"msg": "Unfollow fail!"}
+      end
+    end
+
+    desc "Get all post of user"
+    params do
+      requires :user_id, type: Integer
+    end
+    get ":user_id/posts" do
+      authenticate!
+      posts = Post.list_posts params[:user_id]
+      if !posts
+        posts = []
+      end
+      {"posts": posts}
+    end
+
+    desc "Get all followed of user"
+    params do
+      requires :user_id, type: Integer
+    end
+    get ":user_id/following" do
+      authenticate!
+      user = User.find_by(id: params[:user_id])
+      {"users": user.following}
+    end
+
+    desc "Get all followed of user"
+    params do
+      requires :user_id, type: Integer
+    end
+    get ":user_id/followers" do
+      authenticate!
+      user = User.find_by(id: params[:user_id])
+      {"users": user.followers}
+    end
+
+    desc "Newfeed"
+    # params do 
+    #   requires :user_id, type: Integer
+    # end
+    get :newfeed do
+      authenticate!
+      newfeeds = {:newfeed => []}
+      following = current_user.following
+      following.each do |user|
+        posts = Post.newfeed user.id
+        if !posts.blank?
+          user = user.attributes
+          user[:posts] = posts
+          newfeeds[:newfeed].push(user)
+        end
+      end
+
+      posts = Post.newfeed current_user.id
+      if !posts.blank?
+        user = current_user.attributes
+        user[:posts] = posts
+        newfeeds[:newfeed].push(user)
+      end
+      newfeeds
     end
   end
 end
