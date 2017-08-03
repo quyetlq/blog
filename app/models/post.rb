@@ -1,6 +1,8 @@
 # encoding: utf-8
 class Post < ApplicationRecord
   belongs_to :user
+  has_many :comments
+  has_many :likes
 
   scope :list_posts, ->(user_id){where("user_id = ?", "#{user_id}")}
   scope :newfeed, ->(user_id){where("user_id = ? AND created_at >= ?", "#{user_id}", Time.now - 7.days)}
