@@ -1,24 +1,41 @@
 class V1::UserAPI < Grape::API
-	resource :users do
-
-    desc "Creates and returns access_token if valid login"
-    params do
-      requires :email, type: String, desc: "Username or email address"
-      requires :password, type: String, desc: "Password"
+  desc "Creates and returns access_token if valid login"
+  params do
+    requires :email, type: String, desc: "Username or email address"
+    requires :password, type: String, desc: "Password"
+  end
+  post :login do
+    if params[:email].include?("@")
+      user = User.find_by_email(params[:email].downcase)
+    else
+      user = User.find_by_login(params[:email].downcase)
     end
-    post :login do
-      if params[:email].include?("@")
-        user = User.find_by_email(params[:email].downcase)
-      else
-        user = User.find_by_login(params[:email].downcase)
-      end
 
-      if user && user.authenticate(params[:password])
-        key = ApiKey.create(user_id: user.id, expires_at: DateTime.now+30*60)
-        {token: key.access_token}
-      else
-        error!('Unauthorized.', 401)
-      end
+    if user && user.authenticate(params[:password])
+      key = ApiKey.create(user_id: user.id, expires_at: DateTime.now+30*60)
+      {
+        token: key.access_token,
+        user_name: user.user_name,
+        role: user.role,
+      }
+    else
+      error!('Unauthorized!', 401)
+    end
+  end
+
+  resource :users do
+    before do
+      authenticate!
+    end
+    
+    desc "Logout and remove all access_token of user"
+    params do
+      requires :token, type: String, desc: "Access token."
+    end
+    post :logout do
+      # authenticate!
+      current_user.api_keys.find_by!(access_token: params[:token]).expire!
+      {"message": "logout sucssess!"}
     end
 
     desc "Show me"
@@ -26,58 +43,9 @@ class V1::UserAPI < Grape::API
       current_user
     end
 
-    desc "Create new member"
-    params do
-      requires :user_name, type: String
-      requires :email, type: String
-      requires :password, type: String
-    end
-    post :create_mem do
-      authenticate_admin!
-      # check mem exists
-      if !User.exists?(:email => params[:email])
-        new_user = User.create! declared(params).merge({role: "member"}).to_h
-      else
-        new_user =  "User exists"
-      end
-      new_user
-    end
-
-
-    desc "Destroy member"
-    params do
-      requires :email, type: String
-    end
-    delete :destroy_mem do
-      authenticate_admin!
-      # check mem exists
-      if User.exists?(:email => params[:email])
-        User.find_by(:email => params[:email]).destroy
-        res = "Delete success!"
-      else
-        res = "User not exists"
-      end
-      res
-    end
-
     desc "Returns pong if logged in correctly"
-    # params do
-    #   requires :token, type: String, desc: "Access token."
-    # end
     get :ping do
-      @current = authenticate!
-      puts @current
       { message: "pong" }
-    end
-
-    desc "Logout and remove all access_token of user"
-    params do
-      requires :token, type: String, desc: "Access token."
-    end
-    post :logout do
-      authenticate!
-      current_user.api_keys.find_by!(access_token: params[:token]).expire!
-      {"message": "logout sucssess!"}
     end
 
     desc "Like post"
@@ -85,7 +53,7 @@ class V1::UserAPI < Grape::API
       requires :post_id, type: Integer
     end
     post :like do
-      authenticate!
+      # authenticate!
       like = Like.create! declared(params).merge({user_id: current_user.id})
       {"msg": "You just like post"}
     end
@@ -95,7 +63,7 @@ class V1::UserAPI < Grape::API
       requires :post_id, type: Integer
     end
     post :dislike do
-      authenticate!
+      # authenticate!
       like = Like.find_by(post_id: params[:post_id],
                           user_id: current_user.id)
       if like
@@ -107,16 +75,9 @@ class V1::UserAPI < Grape::API
 
     desc "All members"
     get :all_mem do
-      authenticate!
+      # authenticate!
       users = User.find_by(role: "member")
       users
-    end
-
-    desc "All users"
-    get :all_users do
-      authenticate_admin!
-      users = User.all
-      {"users": users}
     end
 
     desc "Follow user"
@@ -124,7 +85,7 @@ class V1::UserAPI < Grape::API
       requires :followed_id, type: Integer
     end
     post :follow do
-      authenticate!
+      # authenticate!
       follow = Relationship.create! declared(params).merge({follower_id: current_user.id})
       if !follow.blank?
         user = User.find_by(id: params[:followed_id])
@@ -139,7 +100,7 @@ class V1::UserAPI < Grape::API
       requires :followed_id, type: Integer
     end
     post :unfollow do
-      authenticate!
+      # authenticate!
       follow = Relationship.find_by(followed_id: params[:followed_id], follower_id: current_user.id)
       if follow
         follow.destroy
@@ -154,7 +115,7 @@ class V1::UserAPI < Grape::API
       requires :user_id, type: Integer
     end
     get ":user_id/posts" do
-      authenticate!
+      # authenticate!
       posts = Post.list_posts params[:user_id]
       if !posts
         posts = []
@@ -167,7 +128,7 @@ class V1::UserAPI < Grape::API
       requires :user_id, type: Integer
     end
     get ":user_id/following" do
-      authenticate!
+      # authenticate!
       user = User.find_by(id: params[:user_id])
       {"users": user.following}
     end
@@ -177,7 +138,7 @@ class V1::UserAPI < Grape::API
       requires :user_id, type: Integer
     end
     get ":user_id/followers" do
-      authenticate!
+      # authenticate!
       user = User.find_by(id: params[:user_id])
       {"users": user.followers}
     end
@@ -187,7 +148,7 @@ class V1::UserAPI < Grape::API
     #   requires :user_id, type: Integer
     # end
     get :newfeed do
-      authenticate!
+      # authenticate!
       newfeeds = {:newfeed => []}
       following = current_user.following
       following.each do |user|
